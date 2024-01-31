@@ -1,6 +1,5 @@
 import re
 from collections import defaultdict
-from tqdm.notebook import tqdm
 
 
 class Tokenizer:
@@ -15,15 +14,15 @@ class Tokenizer:
     def learn_vocabulary(self, corpus, num_merges):
         self.orig_vocab = self.get_unigrams(corpus)
 
-        for _ in tqdm(range(num_merges)):
+        for _ in range(num_merges):
             pairs = self.get_stats(self.orig_vocab)
             if not pairs:
-                print("No more pairs to merge")
                 break
             best_pair = max(pairs, key=pairs.get)
             self.merge_rules.append(best_pair)
             self.orig_vocab = self.merge_vocab(best_pair, self.orig_vocab)
 
+        print(f"Vocabulary learned successfully with {len(self.merge_rules)} merge rules")
         self.orig_vocab.update(self.left_vocab)
 
         for key in self.orig_vocab.keys():

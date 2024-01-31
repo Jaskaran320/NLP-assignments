@@ -1,3 +1,0 @@
-i,stand,here
-i,feel,empty
-a,class,post,count,link,href,http,mooshilu
