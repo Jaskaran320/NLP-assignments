@@ -33,11 +33,10 @@ class Tokenizer:
             else:
                 self.vocab[key] = 1
 
-        self.vocab = dict(
-            sorted(self.vocab.items(), key=lambda item: len(item[0]), reverse=False)
-        )
+        self.vocab = dict(sorted(self.vocab.items(), key=lambda item: (len(item[0]), item[0])))
 
     def tokenize(self, sample):
+        sample = sample.replace(" ", "")
         tokens = []
         for word in sample.split():
             tokens.extend(self.split_word(word))
