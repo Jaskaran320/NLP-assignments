@@ -4,16 +4,44 @@ import numpy as np
 class BigramLM:
     def __init__(self,corpus):
         self.corpus=re.sub("\n"," ",corpus)
+        self.split_corpus=self.corpus.split()
         self.token=set()
         self.token_to_indice={}
-        print("MODEL INITITATED b")
-        
+        self.normalized_matrix=None
+        self.matrix=None
+        self.laplace_matrix=None
+        print("MODEL INITITATED")
+
+    def set_laplace_matrix(self):
+        row_sums = self.matrix.sum(axis=1)
+        self.laplace_matrix=self.matrix+1
+        self.laplace_matrix = self.laplace_matrix / row_sums[:, np.newaxis]
+        return 
+    
+    def get_normal_matrix(self):
+        return self.normalized_matrix
+    
+    def get_count_matrix(self):
+        return self.matrix
+    
+    def get_laplace_matrix(self):
+        return self.laplace_matrix
+    
+    def get_token(self):
+        return self.ordered_list
+    
+    def get_corpus(self):
+        return self.split_corpus
+    
+    def get_sum(self):
+        return self.matrix.sum(axis=1)
+
     # May need this if we want to work for a worse corpus
-    def check_remove_punctuation():
+    def check_remove_punctuation(self):
         pass
 
-    def get_token(self):
-        self.split_corpus=self.corpus.split()
+
+    def set_token(self):
         for i in self.split_corpus:
             if i not in self.token:
                 self.token.add(i)
@@ -28,7 +56,7 @@ class BigramLM:
     def find_indice(self,token):
         return self.token_to_indice[token]
     
-    def get_matrix(self):
+    def calculate_bigrams(self):
         no_of_tokens=len(self.token)
         len_of_corpus=len(self.split_corpus)
         self.matrix = np.zeros((no_of_tokens, no_of_tokens), dtype=float)
@@ -41,5 +69,6 @@ class BigramLM:
 
         # Divide each element in a row by the sum of that row
         self.normalized_matrix = self.matrix / row_sums[:, np.newaxis]
-        
-        print("Matrix Calcualted")
+        self.set_laplace_matrix()
+
+        print(" All Matrix Calculated")
