@@ -1,5 +1,5 @@
 import re
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 import numpy as np
 import pickle
 import random
@@ -40,20 +40,21 @@ class BigramLM:
         unique_bigrams = np.where(bigram_matrix != 0, 1, 0).sum()
         
         alpha = []
+        continuation = []
         for row in range(len(bigram_matrix)):
             alpha.append(d * np.where(bigram_matrix[row] !=0,1,0).sum()/unigram_count[row])
         
         context_count = []
         for col in range(len(bigram_matrix[0])):
             context_count.append(np.where(bigram_matrix[:,col] !=0,1,0).sum())
+            continuation.append(context_count[col]/ unique_bigrams)
             
         self.kn_matrix = np.zeros((len(self.token), len(self.token)), dtype=float)
         
         for row in tqdm(range(len(bigram_matrix)), desc="Calculating Kneser-Ney Matrix..."): 
             for col in range(len(bigram_matrix[row])):
-                continuation = context_count[col]/ unique_bigrams
                 self.kn_matrix[row][col] = max(bigram_matrix[row][col] - d, 0) / unigram_count[row]
-                self.kn_matrix[row][col] += alpha[row] * continuation
+                self.kn_matrix[row][col] += alpha[row] * continuation[col]
                 
         return self.kn_matrix
 
@@ -115,7 +116,7 @@ class BigramLM:
         print("All Matrices Calculated 🟢")
 
 
-    def get_emotion_matrix(self, matrix, emotion):
+    def get_emotion_matrix(self, matrix, emotion,alpha,beta):
 
         emotion_matrix = matrix.copy()
         tokens = self.get_token()
@@ -124,15 +125,15 @@ class BigramLM:
         for i, token in tqdm(enumerate(tokens),desc="Generating "+emotion+" Matix"):
             for j, token2 in enumerate(tokens):
                 if self.get_count_matrix()[i][j] > 0:
-                    emotion_matrix[i][j] += self.emotions[(token, token2)][index]['score']
+                    emotion_matrix[i][j] = alpha * emotion_matrix[i][j] + beta * self.emotions[(token, token2)][index]['score']
 
         with open(f'pickle_files/{emotion}.pkl', 'wb') as f:
             pickle.dump(emotion_matrix, f)
 
         return emotion_matrix
     
-    def generate_sentences(self,matrix,emotion,word_limit=10,no_of_sentences=50):
-        emotion_matrix=self.get_emotion_matrix(matrix,emotion)
+    def generate_sentences(self,matrix,emotion,alpha,beta,word_limit=10,no_of_sentences=50):
+        emotion_matrix=self.get_emotion_matrix(matrix,emotion,alpha,beta)
         normalized_emotion_matrix = emotion_matrix / emotion_matrix.sum(axis=1, keepdims=True)
         sentences=[]
         for i in tqdm(range(no_of_sentences),desc="Generating Sentence"):
