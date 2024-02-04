@@ -12,15 +12,42 @@ class BigramLM:
         self.normalized_matrix = None
         self.matrix = None
         self.laplace_matrix = None
-        print("MODEL INITITATED")
+        print("Model Initialized 🟢")
 
     def set_laplace_matrix(self):
         row_sums = self.matrix.sum(axis=1)
         self.laplace_matrix = (self.matrix + 1) / (
-            row_sums[:, np.newaxis] + len(self.token)
+            row_sums[:,np.newaxis] + len(self.token)
         )
         return
 
+    def get_kn_matrix(self, d = 0.75):    
+        bigram_matrix = self.matrix
+        unigram_count = bigram_matrix.sum(axis=1)
+        
+        unique_bigrams = np.where(bigram_matrix != 0, 1, 0).sum()
+        
+        alpha = []
+        for row in range(len(bigram_matrix)):
+            alpha.append(d * np.where(bigram_matrix[row] !=0,1,0).sum()/unigram_count[row])
+        
+        context_count = []
+        for col in range(len(bigram_matrix[0])):
+            context_count.append(np.where(bigram_matrix[:,col] !=0,1,0).sum())
+        
+            
+        self.kn_matrix = np.zeros((len(self.token), len(self.token)), dtype=float)
+        
+        for row in tqdm(range(len(bigram_matrix)), desc="Calculating Kneser-Ney Matrix..."): 
+            for col in range(len(bigram_matrix[row])):
+                continuation = context_count[col]/ unique_bigrams
+                self.kn_matrix[row][col] = max(bigram_matrix[row][col] - d, 0) / unigram_count[row]
+                self.kn_matrix[row][col] += alpha[row] * continuation
+                
+        return self.kn_matrix
+
+                    
+        
     def get_normal_matrix(self):
         return self.normalized_matrix
 
@@ -31,7 +58,7 @@ class BigramLM:
         return self.laplace_matrix
 
     def get_token(self):
-        return self.ordered_list
+        return self.ordered_tokens
 
     def get_corpus(self):
         return self.split_corpus
@@ -48,22 +75,21 @@ class BigramLM:
             if i not in self.token:
                 self.token.add(i)
 
-        self.ordered_list = list(self.token)
+        self.ordered_tokens = sorted(list(self.token))
 
-        for i in range(len(self.ordered_list)):
-            self.token_to_indice[self.ordered_list[i]] = i
-        print("Done")
+        for i in range(len(self.ordered_tokens)):
+            self.token_to_indice[self.ordered_tokens[i]] = i
+        print("Tokens Set 🟢")
         return
 
     def find_indice(self, token):
         return self.token_to_indice[token]
 
-    def calculate_bigrams(self):        
-
+    def calculate_bigrams(self):
         no_of_tokens = len(self.token)
         len_of_corpus = len(self.split_corpus)
         self.matrix = np.zeros((no_of_tokens, no_of_tokens), dtype=float)
-        for i in tqdm(range(len_of_corpus - 1), desc="Processing"):
+        for i in tqdm(range(len_of_corpus - 1), desc="Populating Bigram Matrix..."):
             x = self.find_indice(self.split_corpus[i])
             x_plus_1 = self.find_indice(self.split_corpus[i + 1])
             self.matrix[x, x_plus_1] += 1
@@ -74,4 +100,4 @@ class BigramLM:
         self.normalized_matrix = self.matrix / row_sums[:, np.newaxis]
         self.set_laplace_matrix()
 
-        print(" All Matrix Calculated")
+        print("All Matrices Calculated 🟢")
