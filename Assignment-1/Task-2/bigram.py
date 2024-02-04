@@ -2,6 +2,7 @@ import re
 from tqdm.notebook import tqdm
 import numpy as np
 import pickle
+import random
 
 
 class BigramLM:
@@ -120,7 +121,7 @@ class BigramLM:
         tokens = self.get_token()
         index = self.emotion_labels[emotion]
 
-        for i, token in tqdm(enumerate(tokens)):
+        for i, token in tqdm(enumerate(tokens),desc="Generating "+emotion+" Matix"):
             for j, token2 in enumerate(tokens):
                 if self.get_count_matrix()[i][j] > 0:
                     emotion_matrix[i][j] += self.emotions[(token, token2)][index]['score']
@@ -129,3 +130,27 @@ class BigramLM:
             pickle.dump(emotion_matrix, f)
 
         return emotion_matrix
+    
+    def generate_sentences(self,matrix,emotion,word_limit=10,no_of_sentences=50):
+        emotion_matrix=self.get_emotion_matrix(matrix,emotion)
+        normalized_emotion_matrix = emotion_matrix / emotion_matrix.sum(axis=1, keepdims=True)
+        sentences=[]
+        for i in tqdm(range(no_of_sentences),desc="Generating Sentence"):
+            start_token=random.choice(self.get_token())
+            sentence = [start_token]
+            index=self.find_index(start_token)
+            for j in range(word_limit):
+                sampled_indices = np.random.choice(self.get_token(), size=1, p=normalized_emotion_matrix[index])
+                sentence.append(sampled_indices[0])
+                index = self.find_index(sampled_indices[0])
+            sentence = ' '.join(sentence)
+            sentences.append(sentence)
+        
+        with open(f"emotion_text/gen_{emotion}.txt", "w") as file:
+            for sentence in sentences:
+                file.write(sentence + "\n")
+
+        print("Sentences Generated + Stored 🟢")
+        return sentences
+
+
