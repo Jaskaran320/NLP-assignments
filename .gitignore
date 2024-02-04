@@ -1,2 +1,8 @@
-Assignment-1/Task-1/__pycache__
+Assignment-1/Task-1/__pycache__/
 Assignment-1/Task-2/__pycache__/
+Assignment-1/Task-2/pickle_files/sadness.pkl
+Assignment-1/Task-2/pickle_files/joy.pkl
+Assignment-1/Task-2/pickle_files/love.pkl
+Assignment-1/Task-2/pickle_files/anger.pkl
+Assignment-1/Task-2/pickle_files/fear.pkl
+Assignment-1/Task-2/pickle_files/surprise.pkl

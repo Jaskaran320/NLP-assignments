@@ -1,6 +1,7 @@
 import re
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 import numpy as np
+import pickle
 
 
 class BigramLM:
@@ -8,10 +9,19 @@ class BigramLM:
         self.corpus = re.sub("\n", " ", corpus)
         self.split_corpus = self.corpus.split()
         self.token = set()
-        self.token_to_indice = {}
+        self.token_to_index = {}
         self.normalized_matrix = None
         self.matrix = None
         self.laplace_matrix = None
+        self.emotions = pickle.load(open('pickle_files/emotions.pkl', 'rb'))
+        self.emotion_labels = {
+            "sadness": 0,
+            "joy": 1,
+            "love": 2,
+            "anger": 3,
+            "fear": 4,
+            "surprise": 5,
+        }
         print("Model Initialized 🟢")
 
     def set_laplace_matrix(self):
@@ -21,7 +31,8 @@ class BigramLM:
         )
         return
 
-    def get_kn_matrix(self, d = 0.75):    
+    def set_kn_matrix(self, d = 0.75):
+        
         bigram_matrix = self.matrix
         unigram_count = bigram_matrix.sum(axis=1)
         
@@ -34,7 +45,6 @@ class BigramLM:
         context_count = []
         for col in range(len(bigram_matrix[0])):
             context_count.append(np.where(bigram_matrix[:,col] !=0,1,0).sum())
-        
             
         self.kn_matrix = np.zeros((len(self.token), len(self.token)), dtype=float)
         
@@ -46,7 +56,8 @@ class BigramLM:
                 
         return self.kn_matrix
 
-                    
+    def get_kn_matrix(self):
+        return self.kn_matrix
         
     def get_normal_matrix(self):
         return self.normalized_matrix
@@ -78,20 +89,20 @@ class BigramLM:
         self.ordered_tokens = sorted(list(self.token))
 
         for i in range(len(self.ordered_tokens)):
-            self.token_to_indice[self.ordered_tokens[i]] = i
+            self.token_to_index[self.ordered_tokens[i]] = i
         print("Tokens Set 🟢")
         return
 
-    def find_indice(self, token):
-        return self.token_to_indice[token]
+    def find_index(self, token):
+        return self.token_to_index[token]
 
     def calculate_bigrams(self):
         no_of_tokens = len(self.token)
         len_of_corpus = len(self.split_corpus)
         self.matrix = np.zeros((no_of_tokens, no_of_tokens), dtype=float)
         for i in tqdm(range(len_of_corpus - 1), desc="Populating Bigram Matrix..."):
-            x = self.find_indice(self.split_corpus[i])
-            x_plus_1 = self.find_indice(self.split_corpus[i + 1])
+            x = self.find_index(self.split_corpus[i])
+            x_plus_1 = self.find_index(self.split_corpus[i + 1])
             self.matrix[x, x_plus_1] += 1
 
         row_sums = self.matrix.sum(axis=1)
@@ -101,3 +112,20 @@ class BigramLM:
         self.set_laplace_matrix()
 
         print("All Matrices Calculated 🟢")
+
+
+    def get_emotion_matrix(self, matrix, emotion):
+
+        emotion_matrix = matrix.copy()
+        tokens = self.get_token()
+        index = self.emotion_labels[emotion]
+
+        for i, token in tqdm(enumerate(tokens)):
+            for j, token2 in enumerate(tokens):
+                if self.get_count_matrix()[i][j] > 0:
+                    emotion_matrix[i][j] += self.emotions[(token, token2)][index]['score']
+
+        with open(f'pickle_files/{emotion}.pkl', 'wb') as f:
+            pickle.dump(emotion_matrix, f)
+
+        return emotion_matrix
