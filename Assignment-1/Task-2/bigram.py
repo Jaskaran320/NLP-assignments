@@ -2,7 +2,6 @@ import re
 from tqdm import tqdm
 import numpy as np
 import pickle
-import random
 
 
 class BigramLM:
@@ -133,11 +132,12 @@ class BigramLM:
         return emotion_matrix
 
     def generate_sentences(self, matrix, emotion, alpha, beta, word_limit=10, no_of_sentences=50):
+        
         emotion_matrix = self.get_emotion_matrix(matrix, emotion, alpha, beta)
         normalized_emotion_matrix = emotion_matrix / emotion_matrix.sum(axis=1, keepdims=True)
         sentences = []
         for _ in tqdm(range(no_of_sentences), desc="Generating Sentence"):
-            start_token = random.choice(self.get_token())
+            start_token = np.random.choice(self.get_token())
             sentence = [start_token]
             index = self.find_index(start_token)
             for _ in range(word_limit):
