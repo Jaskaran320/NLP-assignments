@@ -140,14 +140,21 @@ class BigramLM:
             start_token = "$"
             sentence=[]
             index = self.find_index(start_token)
+            end=False
             for _ in range(word_limit):
                 sampled_indices = np.random.choice(
                     self.get_token(), size=1, p=normalized_emotion_matrix[index]
                 )
                 while(sampled_indices[0]=="$"):
+                    ind=self.find_index(sampled_indices[0])
+                    if normalized_emotion_matrix[index][ind]==1:
+                        end=True
+                        break
                     sampled_indices = np.random.choice(self.get_token(), size=1, p=normalized_emotion_matrix[index])
+                if end==True:
+                    break
                 sentence.append(sampled_indices[0])
-                index = self.find_index(sampled_indices[0])
+                index = self.find_index(sampled_indices[0])    
             sentence = " ".join(sentence)
             sentences.append(sentence)
 
