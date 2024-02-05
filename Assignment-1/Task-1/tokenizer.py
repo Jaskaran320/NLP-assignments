@@ -36,7 +36,8 @@ class Tokenizer:
         self.vocab = dict(sorted(self.vocab.items(), key=lambda item: (len(item[0]), item[0])))
 
     def tokenize(self, sample):
-        sample = sample.replace(" ", "")
+        sample = sample.replace(" ", "$")
+        sample = sample + "$"
         tokens = []
         for word in sample.split():
             tokens.extend(self.split_word(word))
@@ -46,6 +47,7 @@ class Tokenizer:
     def get_unigrams(self, corpus):
         unigrams = defaultdict(int)
         for word in corpus.split():
+            word = word + "$"
             token = " ".join(word)
             unigrams[token] += 1
 
