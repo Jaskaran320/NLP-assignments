@@ -137,13 +137,15 @@ class BigramLM:
         normalized_emotion_matrix = emotion_matrix / emotion_matrix.sum(axis=1, keepdims=True)
         sentences = []
         for _ in tqdm(range(no_of_sentences), desc="Generating Sentence"):
-            start_token = np.random.choice(self.get_token())
-            sentence = [start_token]
+            start_token = "$"
+            sentence=[]
             index = self.find_index(start_token)
             for _ in range(word_limit):
                 sampled_indices = np.random.choice(
                     self.get_token(), size=1, p=normalized_emotion_matrix[index]
                 )
+                while(sampled_indices[0]=="$"):
+                    sampled_indices = np.random.choice(self.get_token(), size=1, p=normalized_emotion_matrix[index])
                 sentence.append(sampled_indices[0])
                 index = self.find_index(sampled_indices[0])
             sentence = " ".join(sentence)
