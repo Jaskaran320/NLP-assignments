@@ -30,34 +30,6 @@ class BigramLM:
         self.laplace_matrix = (self.matrix + 1) / (row_sums[:, np.newaxis] + len(self.token))
         return
 
-    # def set_kn_matrix(self, d=0.75):
-
-    #     bigram_matrix = self.matrix
-    #     unigram_count = bigram_matrix.sum(axis=1)
-
-    #     unique_bigrams = np.where(bigram_matrix != 0, 1, 0).sum()
-
-    #     alpha = []
-    #     continuation = []
-    #     for row in range(len(bigram_matrix)):
-    #         alpha.append(d * np.where(bigram_matrix[row] != 0, 1, 0).sum() / unigram_count[row])
-
-    #     context_count = []
-    #     for col in range(len(bigram_matrix[0])):
-    #         context_count.append(np.where(bigram_matrix[:, col] != 0, 1, 0).sum())
-    #         continuation.append(context_count[col] / unique_bigrams)
-
-    #     self.kn_matrix = np.zeros((len(self.token), len(self.token)), dtype=float)
-
-    #     for row in tqdm(range(len(bigram_matrix)), desc="Calculating Kneser-Ney Matrix..."):
-    #         for col in range(len(bigram_matrix[row])):
-    #             self.kn_matrix[row][col] = (
-    #                 max(bigram_matrix[row][col] - d, 0) / unigram_count[row]
-    #             )
-    #             self.kn_matrix[row][col] += alpha[row] * continuation[col]
-
-    #     return 
-
     def set_kn_matrix(self, d=0.75):
         print("Calculating Kneser-Ney matrix...")
 
@@ -94,7 +66,6 @@ class BigramLM:
     def get_sum(self):
         return self.matrix.sum(axis=1)
 
-    # May need this if we want to work for a worse corpus
     def check_remove_punctuation(self):
         pass
 
