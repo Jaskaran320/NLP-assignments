@@ -124,7 +124,7 @@ class BigramLM:
             for j, token2 in enumerate(tokens):
                 if self.get_count_matrix()[i][j] > 0:
                     emotion_matrix[i][j] = (alpha * emotion_matrix[i][j]
-                        + beta * self.emotions[(token, token2)][index]["score"])
+                        + beta * np.around(self.emotions[(token, token2)][index]["score"]))
 
         with open(f"pickle_files/{emotion}.pkl", "wb") as f:
             pickle.dump(emotion_matrix, f)
